@@ -1,0 +1,136 @@
+E:/Workspace/AES-GCM/source/tb_aes_gcm.v {1 {vlog -work work E:/Workspace/AES-GCM/source/tb_aes_gcm.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module tb_aes_gcm
+
+Top level modules:
+	tb_aes_gcm
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_sbox.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_sbox.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_sbox
+
+Top level modules:
+	aes_sbox
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_sub_sbox.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_sub_sbox.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_sub_sbox
+
+Top level modules:
+	aes_sub_sbox
+
+} {} {}} E:/Workspace/AES-GCM/source/tb.v {1 {vlog -work work E:/Workspace/AES-GCM/source/tb.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module tb_aes_core
+
+Top level modules:
+	tb_aes_core
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_decipher_block.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_decipher_block.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_decipher_block
+
+Top level modules:
+	aes_decipher_block
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_key_mem.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_key_mem.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_key_mem
+
+Top level modules:
+	aes_key_mem
+
+} {} {}} E:/Workspace/AES-GCM/source/mixcolumns.v {1 {vlog -work work E:/Workspace/AES-GCM/source/mixcolumns.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module mixw
+-- Compiling module mixcolumns
+
+Top level modules:
+	mixcolumns
+
+} {} {}} E:/Workspace/AES-GCM/source/k_tb.v {1 {vlog -work work E:/Workspace/AES-GCM/source/k_tb.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module k_tb
+
+Top level modules:
+	k_tb
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_encipher_block.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_encipher_block.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_encipher_block
+
+Top level modules:
+	aes_encipher_block
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_inv_sbox.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_inv_sbox.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_inv_sbox
+
+Top level modules:
+	aes_inv_sbox
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_gcm_TOP.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_gcm_TOP.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_gcm_TOP
+
+Top level modules:
+	aes_gcm_TOP
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_core.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_core.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_core
+
+Top level modules:
+	aes_core
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_sub_inv_sbox.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_sub_inv_sbox.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_sub_inv_sbox
+
+Top level modules:
+	aes_sub_inv_sbox
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_core_TOP.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_core_TOP.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_core_TOP
+
+Top level modules:
+	aes_core_TOP
+
+} {} {}} E:/Workspace/AES-GCM/source/aes_core_TOP_wrapper.v {1 {vlog -work work E:/Workspace/AES-GCM/source/aes_core_TOP_wrapper.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module aes_core_TOP_wrapper
+
+Top level modules:
+	aes_core_TOP_wrapper
+
+} {} {}} E:/Workspace/AES-GCM/source/inv_mixcolumns.v {1 {vlog -work work E:/Workspace/AES-GCM/source/inv_mixcolumns.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module inv_mixw
+-- Compiling module inv_mixcolumns
+
+Top level modules:
+	inv_mixcolumns
+
+} {} {}} E:/Workspace/AES-GCM/source/tb_gctr.v {1 {vlog -work work E:/Workspace/AES-GCM/source/tb_gctr.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module tb_gctr
+
+Top level modules:
+	tb_gctr
+
+} {} {}} E:/Workspace/AES-GCM/source/tb_gfmul.v {1 {vlog -work work E:/Workspace/AES-GCM/source/tb_gfmul.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module tb_gfmul
+
+Top level modules:
+	tb_gfmul
+
+} {} {}} E:/Workspace/AES-GCM/source/gctr_block.v {1 {vlog -work work E:/Workspace/AES-GCM/source/gctr_block.v
+Model Technology ModelSim ALTERA vlog 10.1d Compiler 2012.11 Nov  2 2012
+-- Compiling module gctr_block
+
+Top level modules:
+	gctr_block
+
+} {} {}}
