@@ -118,15 +118,15 @@ ghash_block GHASH(
 
 //Store Hashkey
 always @(posedge iClk) begin
-	if(~iRstn)				hash_key_reg <= 128'd0;
-	else if(hash_key_wen)	hash_key_reg <= gctr_result;  //Hashkey
+	//if(~iRstn)				hash_key_reg <= 128'd0;
+	if(hash_key_wen)	hash_key_reg <= gctr_result;  //Hashkey
 	else					hash_key_reg <= hash_key_reg;
 end
 
 //Store Tag
 always @(posedge iClk) begin
-	if(~iRstn)						tag_reg <= 128'd0;
-	else if(iTag_valid)	tag_reg <= iTag;
+	//if(~iRstn)						tag_reg <= 128'd0;
+	if(iTag_valid)	tag_reg <= iTag;
 	else							tag_reg <= tag_reg;
 end
 
@@ -159,8 +159,8 @@ end
 
 //y0
 always @(posedge iClk) begin
-	if(~iRstn)					y0_reg <= 128'd0;
-	else if(y0_wen)				y0_reg <= gctr_result; //y0
+	//if(~iRstn)					y0_reg <= 128'd0;
+	if(y0_wen)				y0_reg <= gctr_result; //y0
 	else						y0_reg <= y0_reg;
 end
 //----------------------------------------------------------------
