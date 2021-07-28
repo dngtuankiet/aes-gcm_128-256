@@ -161,23 +161,27 @@ module aes_decipher_block(
  end
  */
  always@(posedge iClk) begin
-	if(~iRstn)				block_w0_reg <= 32'b0;
-	else if(block_w0_we)	block_w0_reg <= block_new[127:96];
+	//if(~iRstn)				block_w0_reg <= 32'b0;
+	if(block_w0_we)			block_w0_reg <= block_new[127:96];
+	else					block_w0_reg <= block_w0_reg;
  end
  
  always@(posedge iClk) begin
-	if(~iRstn)				block_w1_reg <= 32'b0;
-	else if(block_w1_we)	block_w1_reg <= block_new[95:64];
+	//if(~iRstn)				block_w1_reg <= 32'b0;
+	if(block_w1_we)			block_w1_reg <= block_new[95:64];
+	else					block_w1_reg <= block_w1_reg;
  end
  
  always@(posedge iClk) begin
-	if(~iRstn)				block_w2_reg <= 32'b0;
-	else if(block_w2_we)	block_w2_reg <= block_new[63:32];
+	//if(~iRstn)				block_w2_reg <= 32'b0;
+	if(block_w2_we)			block_w2_reg <= block_new[63:32];
+	else					block_w2_reg <= block_w2_reg;
  end
  
  always@(posedge iClk) begin
-	if(~iRstn)				block_w3_reg <= 32'b0;
-	else if(block_w3_we)	block_w3_reg <= block_new[31:0];
+	//if(~iRstn)				block_w3_reg <= 32'b0;
+	if(block_w3_we)			block_w3_reg <= block_new[31:0];
+	else					block_w3_reg <= block_w3_reg;
  end
  
  always@(posedge iClk) begin
