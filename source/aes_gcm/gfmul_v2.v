@@ -1,6 +1,6 @@
 module gfmul_v2(
 input iClk,
-input iRst_n,
+input iRstn,
 input [0:127] iCtext,
 input iCtext_valid,
 input [0:127] iHashkey,
@@ -22,8 +22,7 @@ wire [0:127] mux_Z_1;
 wire [0:127] mux_Z_2;
 wire [0:127] mux_V;
 wire mux_sel_V;
-wire mux_sel_Z_1;
-wire mux_sel_Z_2;
+wire mux_sel_Z;
 
 //----------------------------------------------------------------
 // function
@@ -65,14 +64,13 @@ assign oResult_valid = overflow;
 assign oResult = Z;
 
 assign mux_sel_V = (cnt == 7'd0)? 1'b1 : 1'b0;
-assign mux_sel_Z_1 = (cnt == 7'd0)? 1'b1 : 1'b0;
-assign mux_sel_Z_2 = (cnt == 7'd0)? 1'b1 : 1'b0;
+assign mux_sel_Z = (cnt == 7'd0)? 1'b1 : 1'b0;
 
 assign mux_V = (mux_sel_V)? iHashkey : V;
 assign V_and_xor = and_xor({1'b0, mux_V[0:126]}, iR, {128{mux_V[127]}});
 
-assign mux_Z_1 = (mux_sel_Z_1)? iHashkey : V;
-assign mux_Z_2 = (mux_sel_Z_2)? 128'd0 : Z;
+assign mux_Z_1 = (mux_sel_Z)? iHashkey : V;
+assign mux_Z_2 = (mux_sel_Z)? 128'd0 : Z;
 assign Z_and_xor = and_xor(mux_Z_2, mux_Z_1, {128{iCtext[cnt]}});
 
 endmodule
