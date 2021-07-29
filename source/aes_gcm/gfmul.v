@@ -162,7 +162,8 @@ assign V[127] = {1'b0, V[126][0:126]} ^ (iR & {128{V[126][127]}});
 
 
 //assign Z[0] = 128'd0 ^ (V[0] & iCtext[0]);
-assign Z[1] =  128'd0 ^ (V[0] & {128{iCtext[0]}});
+//assign Z[1] =  128'd0 ^ (V[0] & {128{iCtext[0]}});
+assign Z[1] =  128'd0 ^ (iHashkey & {128{iCtext[0]}});
 assign Z[2] = Z[1] ^ (V[1] & {128{iCtext[1]}});
 assign Z[3] = Z[2] ^ (V[2] & {128{iCtext[2]}});
 assign Z[4] = Z[3] ^ (V[3] & {128{iCtext[3]}});
