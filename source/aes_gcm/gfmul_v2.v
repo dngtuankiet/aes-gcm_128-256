@@ -17,7 +17,7 @@ wire [0:127] iR;
 assign iR = {8'b1110_0001, 120'd0};
 wire [0:127] V_and_xor;
 wire [0:127] Z_and_xor;
-reg [6:0] cnt;
+reg [7:0] cnt;
 wire [0:127] mux_Z_1;
 wire [0:127] mux_Z_2;
 wire [0:127] mux_V;
@@ -40,11 +40,13 @@ endfunction
 //----------------------------------------------------------------
 // register
 //----------------------------------------------------------------
+wire overflow = cnt[7];
 always@(posedge iClk) begin
-	if(~iRst_n | oResult_valid)				cnt <= 7'd0;
+	if(~iRst_n | overflow)					cnt <= 8'd0;
 	else if(iCtext_valid && iHashkey_valid) cnt <= cnt + 1'b1;
 	else									cnt <= cnt;
 end
+
 
 always@(posedge iClk) begin
 	if(iHashkey_valid) 	V <= V_and_xor;
@@ -59,7 +61,7 @@ end
 //----------------------------------------------------------------
 // assignment
 //----------------------------------------------------------------
-assign oResult_valid = &cnt;
+assign oResult_valid = overflow;
 assign oResult = Z;
 
 assign mux_sel_V = (cnt == 7'd0)? 1'b1 : 1'b0;
