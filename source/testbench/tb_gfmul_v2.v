@@ -13,7 +13,7 @@ always #5 CLK = ~CLK;
 
 gfmul_v2 GFMUL(
 .iClk(CLK),
-.iRst_n(RST),
+.iRstn(RST),
 .iCtext(CTEXT),
 .iCtext_valid(CTEXT_VALID),
 .iHashkey(HASHKEY),
