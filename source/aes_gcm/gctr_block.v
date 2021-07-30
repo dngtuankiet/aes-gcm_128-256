@@ -96,15 +96,15 @@ aes_core U1(
 
 //Sample input IV
 always @(posedge iClk) begin
-	//if(~iRstn) 									IV_reg <= 128'd0;
-	if(IV_wen & iIV_valid & ~iOpMode)  	IV_reg <= iIV;				
+	if(~iRstn) 									IV_reg <= 128'd0;
+	else if(IV_wen & iIV_valid & ~iOpMode)  	IV_reg <= iIV;				
 	else 										IV_reg <= IV_reg;
 end
 
 //Sample input plaintext
 always @(posedge iClk) begin
-	//if(~iRstn) 							block_reg <= 128'd0;
-	if(block_wen & iBlock_valid)  	block_reg <= iBlock;			
+	if(~iRstn) 							block_reg <= 128'd0;
+	else if(block_wen & iBlock_valid)  	block_reg <= iBlock;			
 	else 								block_reg <= block_reg;
 end
 
@@ -117,8 +117,8 @@ end
 
 //Sample input key
 always @(posedge iClk) begin
-	//if(~iRstn) 						key_reg <= 256'd0;
-	if(key_wen & iKey_valid)  	key_reg <= iKey;				
+	if(~iRstn) 						key_reg <= 256'd0;
+	else if(key_wen & iKey_valid)  	key_reg <= iKey;				
 	else 							key_reg <= key_reg;
 end
 
