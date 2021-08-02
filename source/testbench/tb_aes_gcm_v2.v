@@ -302,16 +302,19 @@ input [0:127] expected_tag
 	BLOCK_VAL = block_valid;
 	BLOCK_LAST = block_last;
 	
-	@(posedge CLK);
-	if (BLOCK_LAST) begin 
-		@(posedge TAG_VAL);
-		check_tag(expected_tag);
-	end
-	else if(~aad_valid) begin
-		@(posedge READY);
-		check_cipher(expected_result);
-	end
+	// @(posedge CLK);
+	// if (BLOCK_LAST) begin 
+	// 	@(posedge TAG_VAL);
+	// 	check_tag(expected_tag);
+	// end
+	// else if(~aad_valid) begin
+	// 	@(posedge READY);
+	// 	check_cipher(expected_result);
+	// end
 	
+    @(posedge READY);
+    check_cipher(expected_result);
+
 	end
 endtask
 
