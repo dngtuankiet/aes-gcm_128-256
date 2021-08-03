@@ -221,8 +221,14 @@ gctr_block_test(INIT_AES_CORE, test_256_iv, 1'b1 /*valid iv*/, test_256_key, 1'b
 //test with test_block_1
 gctr_block_test(INIT_AES_CORE, test_256_iv, 1'b1 /*valid iv*/, test_256_key, 1'b1 /*valid key*/, AES_256_BIT_KEY, Y0_NO, HASHKEY_NO, test_256_block_1, 1'b1  /*valid block*/);
 
+//At this point, the GCTR_BLOCK Init is turn off
+//the output of the previous block (RESULT + RESULT_VALID) SHOULD remain
+#100
+
+
 //test with test_block_2
 gctr_block_test(INIT_AES_CORE, test_256_iv, 1'b1 /*valid iv*/, test_256_key, 1'b1 /*valid key*/, AES_256_BIT_KEY, Y0_NO, HASHKEY_NO, test_256_block_2, 1'b1  /*valid block*/);
+
 
 //test with test_block_3
 gctr_block_test(INIT_AES_CORE, test_256_iv, 1'b1 /*valid iv*/, test_256_key, 1'b1 /*valid key*/, AES_256_BIT_KEY, Y0_NO, HASHKEY_NO, test_256_block_3, 1'b1  /*valid block*/);

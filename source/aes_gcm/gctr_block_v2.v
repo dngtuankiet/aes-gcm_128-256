@@ -1,22 +1,19 @@
-//Operation Mode:
-//0: AES-GCM
-//1: AES only
-
 module gctr_block_v2(
+	//control signal
 input iClk,
 input iRstn,  
 input iInit,
-
+input iHashKey,
+input iY0,
+	//data
 input [0:95] iIV,
 input iIV_valid,
 input [0:255] iKey,
 input iKey_valid,
 input iKeylen,
-input iY0,
-
-input iHashKey,
 input [0:127] iBlock,
 input iBlock_valid,
+	//output
 output [0:127] oResult,
 output oResult_valid
 );
@@ -104,13 +101,6 @@ always @(posedge iClk) begin
 	else if(block_wen & iBlock_valid)  	block_reg <= iBlock;			
 	else 								block_reg <= block_reg;
 end
-
-// always @(posedge iClk) begin
-// 	if(~iRstn) 							encdec_reg <= 1'd0;
-// 	//else if(block_wen & iBlock_valid)  	encdec_reg <= iEncdec;
-// 	else if(key_wen & iKey_valid)		encdec_reg <= iEncdec;
-// 	else 								encdec_reg <= encdec_reg;
-// end
 
 //Sample input key
 always @(posedge iClk) begin
@@ -267,7 +257,9 @@ assign key_wen = State1;
 assign hashkey_wen = State1;
 assign aes_core_init = State1;
 assign aes_core_next = State3;
-assign gctr_result_valid = (gctr_ctrl_new[1] & ~gctr_ctrl_new[0])? aes_core_output_valid : 1'b0;
+	//this reduce aes_core_output_valid signal to 1 clock cycle
+//assign gctr_result_valid = (gctr_ctrl_new[1] & ~gctr_ctrl_new[0])? aes_core_output_valid : 1'b0;
+assign gctr_result_valid = aes_core_output_valid;
 assign y0_wen = State1;
 //---------------------------------------------------------------------------------------------------------------------------------
 
