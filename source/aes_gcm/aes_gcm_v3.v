@@ -1,4 +1,4 @@
-module aes_gcm(
+module aes_gcm_v3(
 input iClk,
 input iRstn,
 input iInit,
@@ -36,18 +36,18 @@ output oAuthentic
 
 //ghash result register
 reg [0:127] ghash_result_reg;
-wire ghash_result_wen;
+reg ghash_result_wen; //Todo change to wire
 reg temp;
-wire temp_wen;
-wire ghash_result_dec_wen;
+reg temp_wen; //Todo change to wire
+reg ghash_result_dec_wen; //Todo change to wire
 
 //hash key register
 reg [0:127] hash_key_reg;
-wire hash_key_wen;
+reg hash_key_wen; //Todo change to wire
 
 //y0 register
 reg [0:127] y0_reg;
-wire y0_wen;
+reg y0_wen; //Todo change to wire
 
 //delay iBlock_last
 reg last_block;
@@ -56,29 +56,29 @@ reg last_block;
 reg [0:127] tag_reg;
 
 reg  [2:0] aes_gcm_ctrl_reg;
-wire  [2:0] aes_gcm_ctrl_new;
+reg  [2:0] aes_gcm_ctrl_new; //Todo change to wire
 //----------------------------------------------------------------
 // Control signal
 //----------------------------------------------------------------
 
 //ghash
-wire [1:0] ghash_input_signal;
+reg [1:0] ghash_input_signal; //Todo change to wire
 wire [0:127] muxed_ghash_input1;
 wire [0:127] muxed_ghash_input2;
 wire [0:127] ghash_result;
 
 //gctr
-wire gctr_init;
+reg gctr_init; //Todo change to wire
 wire gctr_mode;
-wire gctr_hashkey_proc;
-wire gctr_y0;
+reg gctr_hashkey_proc; //Todo change to wire
+reg gctr_y0; //Todo change to wire
 wire [0:127] gctr_result;
 wire gctr_result_valid;
 
 //aes_gcm
-wire aes_gcm_ready;
-wire aes_gcm_tag_valid;
-wire aes_gcm_result_valid;		
+reg aes_gcm_ready; //Todo change to wire
+reg  aes_gcm_tag_valid; //Todo change to wire
+reg aes_gcm_result_valid;		//Todo change to wire
 
 //----------------------------------------------------------------
 // Instantiations.
@@ -179,300 +179,291 @@ assign oAuthentic = (~iEncdec & oTag_valid & (tag_reg == oTag));
 
 //assign gctr_mode = (iOpMode)? iEncdec : 1'b1; //always do encryption in aes-gcm 
 assign gctr_mode = ~iOpMode | iEncdec;
-//----------------------------------------------------------------
+// ----------------------------------------------------------------
 // aes_gcm control 
-//
+
 // Control FSM for aes_gcm. Tasks:
 // - Initialize
 // - Calculate Hashkey
 // - Compute AAD (optional)
 // - Send plain text to gctr_block and wait for each cipher text
-//----------------------------------------------------------------
+// ----------------------------------------------------------------
 
-// parameter IDLE = 3'b000;				
-// parameter CAL_HASHKEY = 3'b001;
-// parameter CAL_ADD = 3'b010;
-// parameter CIPHER = 3'b011;
-// parameter TAG1 = 3'b100;
-// parameter TAG2 = 3'b101;
-// parameter AES_ONLY = 3'b110;
+parameter IDLE = 3'b000;				
+parameter CAL_HASHKEY = 3'b001;
+parameter CAL_ADD = 3'b010;
+parameter CIPHER = 3'b011;
+parameter TAG1 = 3'b100;
+parameter TAG2 = 3'b101;
+parameter AES_ONLY = 3'b110;
 
-// always @(*) begin
-	// case(aes_gcm_ctrl_reg)
-	// IDLE:
-		// if(iInit & iKey_valid & ~iOpMode) 		aes_gcm_ctrl_new = CAL_HASHKEY;
-		// else if(iInit & iKey_valid & iOpMode)	aes_gcm_ctrl_new = AES_ONLY;
-		// else									aes_gcm_ctrl_new = IDLE;
-	// CAL_HASHKEY:
-		// if(gctr_result_valid)								aes_gcm_ctrl_new = CAL_ADD;
-		// else												aes_gcm_ctrl_new = CAL_HASHKEY;
-	// CAL_ADD:
-		// if(iAad_last | iBlock_valid)			aes_gcm_ctrl_new = CIPHER;
-		// else									aes_gcm_ctrl_new = CAL_ADD;
-	// CIPHER:
-		// if ((last_block & gctr_result_valid) | (iBlock_last & ~iBlock_valid)) 			aes_gcm_ctrl_new = TAG1;
-		// else 																			aes_gcm_ctrl_new = CIPHER;
-	// TAG1:
-		// if(gctr_result_valid)	aes_gcm_ctrl_new = TAG2;
-		// else					aes_gcm_ctrl_new = TAG1;
-	// TAG2:	
-		// aes_gcm_ctrl_new = IDLE;
-	// AES_ONLY:
-		// if(gctr_result_valid) 	aes_gcm_ctrl_new = IDLE;
-		// else 					aes_gcm_ctrl_new = AES_ONLY;
-	// default:
-		// aes_gcm_ctrl_new = IDLE;
-	// endcase
-// end
+always @(*) begin
+	case(aes_gcm_ctrl_reg)
+	IDLE:
+		if(iInit & iKey_valid & ~iOpMode) 		aes_gcm_ctrl_new = CAL_HASHKEY;
+		else if(iInit & iKey_valid & iOpMode)	aes_gcm_ctrl_new = AES_ONLY;
+		else									aes_gcm_ctrl_new = IDLE;
+	CAL_HASHKEY:
+		if(gctr_result_valid)								aes_gcm_ctrl_new = CAL_ADD;
+		else												aes_gcm_ctrl_new = CAL_HASHKEY;
+	CAL_ADD:
+		if(iAad_last | iBlock_valid)			aes_gcm_ctrl_new = CIPHER;
+		else									aes_gcm_ctrl_new = CAL_ADD;
+	CIPHER:
+		if ((last_block & gctr_result_valid) | (iBlock_last & ~iBlock_valid)) 			aes_gcm_ctrl_new = TAG1;
+		else 																			aes_gcm_ctrl_new = CIPHER;
+	TAG1:
+		if(gctr_result_valid)	aes_gcm_ctrl_new = TAG2;
+		else					aes_gcm_ctrl_new = TAG1;
+	TAG2:	
+		aes_gcm_ctrl_new = IDLE;
+	AES_ONLY:
+		if(gctr_result_valid) 	aes_gcm_ctrl_new = IDLE;
+		else 					aes_gcm_ctrl_new = AES_ONLY;
+	default:
+		aes_gcm_ctrl_new = IDLE;
+	endcase
+end
 
-wire IDLE 			= ~aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
-wire CAL_HASHKEY 	= ~aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
-wire CAL_ADD		= ~aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
-wire CIPHER			= ~aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
-wire TAG1			=  aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
-wire TAG2			=  aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
-wire AES_ONLY		=  aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
+// wire IDLE 			= ~aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
+// wire CAL_HASHKEY 	= ~aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
+// wire CAL_ADD		= ~aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
+// wire CIPHER			= ~aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
+// wire TAG1			=  aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
+// wire TAG2			=  aes_gcm_ctrl_reg[2] & ~aes_gcm_ctrl_reg[1] &  aes_gcm_ctrl_reg[0];
+// wire AES_ONLY		=  aes_gcm_ctrl_reg[2] &  aes_gcm_ctrl_reg[1] & ~aes_gcm_ctrl_reg[0];
 
-assign aes_gcm_ctrl_new[0] = 	 (IDLE & iInit & iKey_valid & ~iOpMode) 
-								|(CAL_HASHKEY & ~gctr_result_valid) 
-								|(CAL_ADD & (iAad_last | iBlock_valid))
-								|(CIPHER & ((~gctr_result_valid & ~iBlock_last) | (~last_block & ~iBlock_last) | (~gctr_result_valid & iBlock_valid) | (iBlock_valid & ~last_block)))
-								|(TAG1 & gctr_result_valid);
-assign aes_gcm_ctrl_new[1] =	(IDLE & iInit & iKey_valid & iOpMode)
-								|(CAL_HASHKEY & gctr_result_valid)
-								|(CAL_ADD)
-								|(CIPHER & ((~gctr_result_valid & ~iBlock_last) | (~last_block & ~iBlock_last) | (~gctr_result_valid & iBlock_valid) | (iBlock_valid & ~last_block)))
-								|(AES_ONLY & ~gctr_result_valid);
-assign aes_gcm_ctrl_new[2] = 	(IDLE & iInit & iKey_valid & iOpMode)
-								|(CIPHER & ((last_block & gctr_result_valid) | (iBlock_last & ~iBlock_valid)))
-								|(TAG1)
-								|(AES_ONLY & ~gctr_result_valid);
+// assign aes_gcm_ctrl_new[0] = 	 (IDLE & iInit & iKey_valid & ~iOpMode) 
+// 								|(CAL_HASHKEY & ~gctr_result_valid) 
+// 								|(CAL_ADD & (iAad_last | iBlock_valid))
+// 								|(CIPHER & ((~gctr_result_valid & ~iBlock_last) | (~last_block & ~iBlock_last) | (~gctr_result_valid & iBlock_valid) | (iBlock_valid & ~last_block)))
+// 								|(TAG1 & gctr_result_valid);
+// assign aes_gcm_ctrl_new[1] =	(IDLE & iInit & iKey_valid & iOpMode)
+// 								|(CAL_HASHKEY & gctr_result_valid)
+// 								|(CAL_ADD)
+// 								|(CIPHER & ((~gctr_result_valid & ~iBlock_last) | (~last_block & ~iBlock_last) | (~gctr_result_valid & iBlock_valid) | (iBlock_valid & ~last_block)))
+// 								|(AES_ONLY & ~gctr_result_valid);
+// assign aes_gcm_ctrl_new[2] = 	(IDLE & iInit & iKey_valid & iOpMode)
+// 								|(CIPHER & ((last_block & gctr_result_valid) | (iBlock_last & ~iBlock_valid)))
+// 								|(TAG1)
+// 								|(AES_ONLY & ~gctr_result_valid);
 
 
-// always @(*) begin
-	////ghash
-	// ghash_result_wen = 1'b0;
-	// ghash_result_dec_wen = 1'b0;
-	// temp_wen = 1'b0;
-	// hash_key_wen = 1'b0;
-	// ghash_input_signal[0] = 1'b0;
-	// ghash_input_signal[1] = 1'b0;
-	////gctr
-	// gctr_init = 1'b0;
-	// gctr_hashkey_proc = 1'b0;
-	// gctr_y0 = 1'b0;
-	// y0_wen = 1'b0;
-	////aes_gcm
-	// aes_gcm_ready = 1'b1;
-	// aes_gcm_tag_valid = 1'b0;
-	// aes_gcm_result_valid = 1'b0;
-	// tag_wen = 1'b0;
-	// case(aes_gcm_ctrl_reg)
-		// 3'b000: begin // IDLE
-			////ghash
-			// ghash_result_wen = 1'b0;
-			// hash_key_wen = 1'b0;
-			// ghash_input_signal[0] = 1'b0;
-			// ghash_input_signal[1] = 1'b0;
-			////gctr
-			// gctr_init = 1'b0;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0; // signal calculate y0
-			// y0_wen = 1'b0;
-			////aes gcm
-			// aes_gcm_ready = 1'b1;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
+always @(*) begin
+	//ghash
+	ghash_result_wen = 1'b0;
+	ghash_result_dec_wen = 1'b0;
+	temp_wen = 1'b0;
+	hash_key_wen = 1'b0;
+	ghash_input_signal[0] = 1'b0;
+	ghash_input_signal[1] = 1'b0;
+	//gctr
+	gctr_init = 1'b0;
+	gctr_hashkey_proc = 1'b0;
+	gctr_y0 = 1'b0;
+	y0_wen = 1'b0;
+	//aes_gcm
+	aes_gcm_ready = 1'b1;
+	aes_gcm_tag_valid = 1'b0;
+	aes_gcm_result_valid = 1'b0;
+	case(aes_gcm_ctrl_reg)
+		3'b000: begin // IDLE
+			//ghash
+			ghash_result_wen = 1'b0;
+			hash_key_wen = 1'b0;
+			ghash_input_signal[0] = 1'b0;
+			ghash_input_signal[1] = 1'b0;
+			//gctr
+			gctr_init = 1'b0;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0; // signal calculate y0
+			y0_wen = 1'b0;
+			//aes gcm
+			aes_gcm_ready = 1'b1;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = 1'b0;
+		end
 		
-		// 3'b001: begin	//CAL_HASHKEY
-			////ghash	
-			// ghash_input_signal[0] = 1'b0; //ignored, dont need GHASH
-			// ghash_input_signal[1] = 1'b0;
-			// ghash_result_wen = 1'b0;
-			// if(gctr_result_valid) 	hash_key_wen = 1'b1;
-			// else 					hash_key_wen = 1'b0;
-			////gctr 
-			// if(gctr_result_valid) gctr_init = 1'b0;
-			// else				  gctr_init = 1'b1;
-			// gctr_hashkey_proc = 1'b1;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// aes_gcm_ready = 1'b0;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b1;
-		// end
+		3'b001: begin	//CAL_HASHKEY
+			//ghash	
+			ghash_input_signal[0] = 1'b0; //ignored, dont need GHASH
+			ghash_input_signal[1] = 1'b0;
+			ghash_result_wen = 1'b0;
+			if(gctr_result_valid) 	hash_key_wen = 1'b1;
+			else 					hash_key_wen = 1'b0;
+			//gctr 
+			if(gctr_result_valid) gctr_init = 1'b0;
+			else				  gctr_init = 1'b1;
+			gctr_hashkey_proc = 1'b1;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			aes_gcm_ready = 1'b0;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = 1'b0;
+		end
 		
-		// 3'b010: begin	//CAL_ADD
-			////ghash
-			// ghash_input_signal[0] = 1'b1; 	//iAAD input to GHASH
-			// ghash_input_signal[1] = 1'b0;
-			// if(iAad_valid)	ghash_result_wen = 1'b1;
-			// else ghash_result_wen = 1'b0;
-			// hash_key_wen = 1'b0;		//turn off hash_key_reg
-			////gctr 
-			// gctr_init = 1'b0;			//in this step, dont use gctr
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// aes_gcm_ready = 1'b1;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
+		3'b010: begin	//CAL_ADD
+			//ghash
+			ghash_input_signal[0] = 1'b1; 	//iAAD input to GHASH
+			ghash_input_signal[1] = 1'b0;
+			if(iAad_valid)	ghash_result_wen = 1'b1;
+			else ghash_result_wen = 1'b0;
+			hash_key_wen = 1'b0;		//turn off hash_key_reg
+			//gctr 
+			gctr_init = 1'b0;			//in this step, dont use gctr
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			aes_gcm_ready = 1'b1;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = 1'b0;
+		end
 		
-		// 3'b011: begin	//CIPHER
-			////ghash
-			// ghash_input_signal[0] = 1'b0; 	//GCTR result input to GHASH
-			// if(iEncdec) ghash_input_signal[1] = 1'b0;
-			// else		ghash_input_signal[1] = 1'b1;
+		3'b011: begin	//CIPHER
+			//ghash
+			ghash_input_signal[0] = 1'b0; 	//GCTR result input to GHASH
+			if(iEncdec) ghash_input_signal[1] = 1'b0;
+			else		ghash_input_signal[1] = 1'b1;
 			
-			// temp_wen = 1'b1;
-			// if(iEncdec) begin
-				// if(gctr_result_valid)	ghash_result_wen = 1'b1;
-				// else					ghash_result_wen = 1'b0;
-				// ghash_result_dec_wen = 1'b0;
-			// end
-			// else begin
-				// ghash_result_wen = 1'b0;
-				// ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
-			// end
+			temp_wen = 1'b1;
+			if(iEncdec) begin
+				if(gctr_result_valid)	ghash_result_wen = 1'b1;
+				else					ghash_result_wen = 1'b0;
+				ghash_result_dec_wen = 1'b0;
+			end
+			else begin
+				ghash_result_wen = 1'b0;
+				ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
+			end
 			
-			////if(iEncdec & gctr_result_valid) 	ghash_result_wen = 1'b1;
-			////else 								ghash_result_wen = 1'b0;
-			////if(~iEncdec) ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
-			////else ghash_result_dec_wen = 1'b0;
+			//if(iEncdec & gctr_result_valid) 	ghash_result_wen = 1'b1;
+			//else 								ghash_result_wen = 1'b0;
+			//if(~iEncdec) ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
+			//else ghash_result_dec_wen = 1'b0;
 			
 			
-			// hash_key_wen = 1'b0;		//turn off hash_key_reg
-			////gctr
-			// if (gctr_result_valid & last_block | ~iBlock_valid) gctr_init = 1'b0;
-			// else												gctr_init = 1'b1;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
-			// else 					aes_gcm_ready = 1'b0;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = gctr_result_valid;
-			// tag_wen = 1'b0;
-		// end
+			hash_key_wen = 1'b0;		//turn off hash_key_reg
+			//gctr
+			if (gctr_result_valid & last_block | ~iBlock_valid) gctr_init = 1'b0;
+			else												gctr_init = 1'b1;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
+			else 					aes_gcm_ready = 1'b0;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = gctr_result_valid;
+		end
 		
-		// 3'b100: begin //TAG1
-			////ghash
-			// ghash_input_signal[0] = 1'b0;
-			// ghash_input_signal[1] = 1'b0;
-			// ghash_result_wen = 1'b0;
-			// temp_wen = 1'b0;
+		3'b100: begin //TAG1
+			//ghash
+			ghash_input_signal[0] = 1'b0;
+			ghash_input_signal[1] = 1'b0;
+			ghash_result_wen = 1'b0;
+			temp_wen = 1'b0;
 			
-			// hash_key_wen = 1'b0;
-			////gctr 
-			// if(gctr_result_valid) gctr_init = 1'b0;
-			// else				  gctr_init = 1'b1;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b1;
-			// if(gctr_result_valid)   y0_wen = 1'b1;
-			// else					y0_wen = 1'b0;
-			////aes gcm
-			// aes_gcm_ready = 1'b0;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
+			hash_key_wen = 1'b0;
+			//gctr 
+			if(gctr_result_valid) gctr_init = 1'b0;
+			else				  gctr_init = 1'b1;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b1;
+			if(gctr_result_valid)   y0_wen = 1'b1;
+			else					y0_wen = 1'b0;
+			//aes gcm
+			aes_gcm_ready = 1'b0;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = 1'b0;
+		end
 		
-		// 3'b101: begin //TAG2
-			////ghash
-			// ghash_input_signal[0] = 1'b1; 	//iAAD/Len to GHASH
-			// ghash_input_signal[1] = 1'b0;
-			// ghash_result_wen = 1'b1;
-			// hash_key_wen = 1'b0;		//turn off hash_key_reg
-			////gctr 
-			// gctr_init = 1'b0;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
-			// else 					aes_gcm_ready = 1'b0;
-			// aes_gcm_tag_valid = 1'b1;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
+		3'b101: begin //TAG2
+			//ghash
+			ghash_input_signal[0] = 1'b1; 	//iAAD/Len to GHASH
+			ghash_input_signal[1] = 1'b0;
+			ghash_result_wen = 1'b1;
+			hash_key_wen = 1'b0;		//turn off hash_key_reg
+			//gctr 
+			gctr_init = 1'b0;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
+			else 					aes_gcm_ready = 1'b0;
+			aes_gcm_tag_valid = 1'b1;
+			aes_gcm_result_valid = 1'b0;
+		end
 		
-		// 3'b110: begin //AES_ONLY
-			////ghash
-			// ghash_result_wen = 1'b0;
-			// hash_key_wen = 1'b0;
-			// ghash_input_signal[0] = 1'b0;
-			// ghash_input_signal[1] = 1'b0;
-			////gctr
-			// gctr_init = 1'b1;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
-			// else 					aes_gcm_ready = 1'b0;
-			// aes_gcm_tag_valid = 1'b0;
-			// if(gctr_result_valid) 	aes_gcm_result_valid = 1'b1;
-			// else					aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
+		3'b110: begin //AES_ONLY
+			//ghash
+			ghash_result_wen = 1'b0;
+			hash_key_wen = 1'b0;
+			ghash_input_signal[0] = 1'b0;
+			ghash_input_signal[1] = 1'b0;
+			//gctr
+			gctr_init = 1'b1;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
+			else 					aes_gcm_ready = 1'b0;
+			aes_gcm_tag_valid = 1'b0;
+			if(gctr_result_valid) 	aes_gcm_result_valid = 1'b1;
+			else					aes_gcm_result_valid = 1'b0;
+		end
 		
-		// default: begin 
-			////ghash
-			// ghash_result_wen = 1'b0;
-			// hash_key_wen = 1'b0;
-			// ghash_input_signal[0] = 1'b0;
-			// ghash_input_signal[1] = 1'b0;
-			////gctr
-			// gctr_init = 1'b0;
-			// gctr_hashkey_proc = 1'b0;
-			// gctr_y0 = 1'b0;
-			// y0_wen = 1'b0;
-			////aes gcm
-			// aes_gcm_ready = 1'b1;
-			// aes_gcm_tag_valid = 1'b0;
-			// aes_gcm_result_valid = 1'b0;
-			// tag_wen = 1'b0;
-		// end
-	// endcase
-// end
+		default: begin 
+			//ghash
+			ghash_result_wen = 1'b0;
+			hash_key_wen = 1'b0;
+			ghash_input_signal[0] = 1'b0;
+			ghash_input_signal[1] = 1'b0;
+			//gctr
+			gctr_init = 1'b0;
+			gctr_hashkey_proc = 1'b0;
+			gctr_y0 = 1'b0;
+			y0_wen = 1'b0;
+			//aes gcm
+			aes_gcm_ready = 1'b1;
+			aes_gcm_tag_valid = 1'b0;
+			aes_gcm_result_valid = 1'b0;
+		end
+	endcase
+end
 
-//ghash
-assign ghash_result_wen = 	(CAL_ADD & iAad_valid) 
-							|(CIPHER & (iEncdec & gctr_result_valid))
-							|TAG2;
+// //ghash
+// assign ghash_result_wen = 	(CAL_ADD & iAad_valid) 
+// 							|(CIPHER & (iEncdec & gctr_result_valid))
+// 							|TAG2;
 							
-assign ghash_result_dec_wen = (CIPHER & (~iEncdec & (~temp & ~ghash_result_wen)));
-assign temp_wen = CIPHER;
-assign hash_key_wen = CAL_HASHKEY & gctr_result_valid;
-assign ghash_input_signal[0] = CAL_ADD | TAG2 ;
-assign ghash_input_signal[1] = CIPHER & ~iEncdec;
+// assign ghash_result_dec_wen = (CIPHER & (~iEncdec & (~temp & ~ghash_result_wen)));
+// assign temp_wen = CIPHER;
+// assign hash_key_wen = CAL_HASHKEY & gctr_result_valid;
+// assign ghash_input_signal[0] = CAL_ADD | TAG2 ;
+// assign ghash_input_signal[1] = CIPHER & ~iEncdec;
 
-//gctr
-assign gctr_init = 	(CAL_HASHKEY & ~gctr_result_valid) 
-					|(CIPHER & ((~gctr_result_valid & iBlock_valid) | (~last_block & iBlock_valid)))
-					|(TAG1 & ~gctr_result_valid)
-					|AES_ONLY;
+// //gctr
+// assign gctr_init = 	(CAL_HASHKEY & ~gctr_result_valid) 
+// 					|(CIPHER & ((~gctr_result_valid & iBlock_valid) | (~last_block & iBlock_valid)))
+// 					|(TAG1 & ~gctr_result_valid)
+// 					|AES_ONLY;
 					
-assign gctr_hashkey_proc = CAL_HASHKEY;
-assign gctr_y0 = TAG1;
-assign y0_wen = TAG1 & gctr_result_valid;
+// assign gctr_hashkey_proc = CAL_HASHKEY;
+// assign gctr_y0 = TAG1;
+// assign y0_wen = TAG1 & gctr_result_valid;
 
-//aes_gcm
-assign aes_gcm_ready = 	IDLE 
-						|CAL_ADD
-						|(CIPHER & gctr_result_valid)
-						|(TAG2 & gctr_result_valid)
-						|(AES_ONLY & gctr_result_valid);
-assign aes_gcm_tag_valid = TAG2;
-assign aes_gcm_result_valid = (CIPHER & gctr_result_valid) | (AES_ONLY & gctr_result_valid);
+// //aes_gcm
+// assign aes_gcm_ready = 	IDLE 
+// 						|CAL_ADD
+// 						|(CIPHER & gctr_result_valid)
+// 						|(TAG2 & gctr_result_valid)
+// 						|(AES_ONLY & gctr_result_valid);
+// assign aes_gcm_tag_valid = TAG2;
+// assign aes_gcm_result_valid = (CIPHER & gctr_result_valid) | (AES_ONLY & gctr_result_valid);
 
 
 
