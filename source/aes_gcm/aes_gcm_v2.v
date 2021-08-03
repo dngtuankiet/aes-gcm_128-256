@@ -36,6 +36,8 @@ output oAuthentic
 
 //Newly added
 reg iAad_last_delay;
+	//gctr_result_reg
+reg [0:127] gctr_result_reg;
 
 //ghash result register
 reg [0:127] ghash_result_reg;
@@ -126,6 +128,27 @@ ghash_block_v2 GHASH(
 // Reg
 //----------------------------------------------------------------
 
+reg first_gctr;
+reg first_gctr_wen;
+always @(posedge iClk) begin
+	if(~iRstn)	first_gctr <= 1'b1;
+	else if(first_gctr_wen) first_gctr <= 1'b0;
+	else 	first_gctr <= first_gctr;
+end
+//GCTR result reg
+reg gctr_result_reg_wen;
+always @(posedge iClk) begin
+	if(~iRstn)	gctr_result_reg <= 128'd0;
+	else if(gctr_result_reg_wen) gctr_result_reg <= gctr_result;
+	else 	gctr_result_reg <= gctr_result_reg;
+end
+reg gctr_result_valid_reg;
+always @(posedge iClk) begin
+	if(~iRstn)	gctr_result_valid_reg <= 1'b0;
+	else if(gctr_result_reg_wen) gctr_result_valid_reg <= 1'b1;
+	else 	gctr_result_valid_reg <= gctr_result_valid_reg;
+end
+
 //Store Hashkey
 always @(posedge iClk) begin
 	if(~iRstn)		iAad_last_delay <= 1'b0;
@@ -183,11 +206,11 @@ end
 // Mux connection, output of aes_gcm, and other signals
 //----------------------------------------------------------------
 
-assign muxed_ghash_input1 = (ghash_input_signal[0])? iAad : gctr_result;
+assign muxed_ghash_input1 = (ghash_input_signal[0])? iAad : gctr_result_reg;
 assign muxed_ghash_input2 = (ghash_input_signal[1])? iBlock : muxed_ghash_input1;
 
 assign oResult = gctr_result;
-assign oResult_valid = aes_gcm_result_valid;
+assign oResult_valid = aes_gcm_result_valid; //Todo: match timing between GCTR and GHASH
 assign oTag = ghash_result ^ y0_reg;					
 assign oTag_valid = aes_gcm_tag_valid;		
 assign oReady = aes_gcm_ready;
@@ -344,8 +367,18 @@ always @(*) begin
 			else		ghash_input_signal[1] = 1'b1;
 			
 			temp_wen = 1'b1;
+			// if(iEncdec) begin
+			// 	if(gctr_result_valid)	ghash_result_wen = 1'b1;
+			// 	else					ghash_result_wen = 1'b0;
+			// 	ghash_result_dec_wen = 1'b0;
+			// end
+			// else begin
+			// 	ghash_result_wen = 1'b0;
+			// 	ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
+			// end
+			
 			if(iEncdec) begin
-				if(gctr_result_valid)	ghash_result_wen = 1'b1;
+				if(ghash_result_valid)	ghash_result_wen = 1'b1;
 				else					ghash_result_wen = 1'b0;
 				ghash_result_dec_wen = 1'b0;
 			end
@@ -353,7 +386,7 @@ always @(*) begin
 				ghash_result_wen = 1'b0;
 				ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
 			end
-			
+
 			//if(iEncdec & gctr_result_valid) 	ghash_result_wen = 1'b1;
 			//else 								ghash_result_wen = 1'b0;
 			//if(~iEncdec) ghash_result_dec_wen =  ~temp & ~ghash_result_wen;
@@ -361,7 +394,7 @@ always @(*) begin
 		
 			hash_key_wen = 1'b0;		//turn off hash_key_reg
 			//Newly added
-			ghash_input_valid = gctr_result_valid;
+			ghash_input_valid = gctr_result_valid_reg;
 			hash_key_valid = 1'b1;
 			//gctr
 			if (gctr_result_valid & last_block | ~iBlock_valid) gctr_init = 1'b0;
@@ -369,6 +402,10 @@ always @(*) begin
 			gctr_hashkey_proc = 1'b0;
 			gctr_y0 = 1'b0;
 			y0_wen = 1'b0;
+			if(gctr_result_valid) first_gctr_wen = 1'b1;
+			else first_gctr_wen = 1'b0;
+			gctr_result_reg_wen = (gctr_result_valid & first_gctr) | (ghash_result_valid & ~first_gctr);
+
 			//aes gcm
 			if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
 			else 					aes_gcm_ready = 1'b0;
