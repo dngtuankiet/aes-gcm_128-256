@@ -3,7 +3,6 @@ reg CLK;
 reg RST;
 reg INIT;
 reg ENCDEC;
-reg OPMODE;
 
 reg [0:95] IV;
 reg IV_VAL;
@@ -45,7 +44,6 @@ aes_gcm_v3 DUT(
 .iRstn(RST),
 .iInit(INIT),
 .iEncdec(ENCDEC),
-.iOpMode(OPMODE),
 .oReady(READY),
 .iIV(IV),
 .iIV_valid(IV_VAL),
@@ -148,7 +146,6 @@ CLK = 0;
 RST = 0;
 INIT = 0;
 ENCDEC = 0;
-OPMODE = 0;
 
 IV = 0;
 IV_VAL = 0;
@@ -264,7 +261,6 @@ always #5 CLK = ~CLK;
 
 task aes_gcm_block_test(
 input init,
-input opmode,
 input encdec,
 
 input [0:95] iv,
@@ -286,7 +282,6 @@ input [0:127] expected_tag
 	begin
 	INIT = init;
 	ENCDEC = encdec;
-	OPMODE = opmode;
 	
 	IV = iv;
 	IV_VAL = iv_valid;
@@ -395,25 +390,25 @@ error_cnt = 0;
 cipher_cnt = 0;
 
 //KEY
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_1, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
 //AAD
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_1, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_2, 1'b1 /*aad val*/, 1'b1 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
 //BLOCK
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b1 /*block val*/, 1'b0 /*block_last*/,testcase1_cipher_256[0], testcase1_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_2, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase1_cipher_256[1], testcase1_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_3, 1'b1 /*block val*/, 1'b1 /*block_last*/, testcase1_cipher_256[2], testcase1_tag_256);
 
 //LEN
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
 
 $display("Checking test case 1 done with %d ERROR Ciphertext", error_cnt);
@@ -426,25 +421,25 @@ $display("Checking test case 2 AES-GCM Enc with 128b Key, both AAD and Plaintext
 error_cnt = 0;
 cipher_cnt = 0;
 //KEY
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_aad_1, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase2_tag_128);
 //AAD
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_aad_1, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/,  128'd0,testcase2_tag_128);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_aad_2, 1'b1 /*aad val*/, 1'b1 /*aad last*/, testcase2_128_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/,  128'd0,testcase2_tag_128);
 //BLOCK
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_1, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase2_cipher_128[0], testcase2_tag_128);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_2, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase2_cipher_128[1], testcase2_tag_128);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_3, 1'b1 /*block val*/, 1'b1 /*block_last*/, testcase2_cipher_128[2], testcase2_tag_128);
 
 //LEN
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase2_128_iv, 1'b1 /*iv val*/, testcase2_128_key, 1'b1 /*key val*/, AES_128_BIT_KEY,
 testcase2_128_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase2_128_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase2_tag_128);
 $display("Checking test case 2 done with %d ERROR Ciphertext", error_cnt);
 $display("");
@@ -456,23 +451,23 @@ $display("Checking test case 3 AES-GCM Enc with 256b Key, only Plaintext without
 error_cnt = 0;
 cipher_cnt = 0;
 //KEY
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_1, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase3_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase3_tag_256);
 //BLOCK
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase3_256_add_empty, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase3_256_block_1, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase3_cipher_256[0], testcase3_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase3_256_add_empty, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase3_256_block_2, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase3_cipher_256[1], testcase3_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase3_256_add_empty, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase3_256_block_3, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase3_cipher_256[2], testcase3_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase3_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase3_256_block_4, 1'b1 /*block val*/, 1'b1 /*block_last*/, testcase3_cipher_256[3], testcase3_tag_256);
 
 //LEN
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase3_256_iv, 1'b1 /*iv val*/, testcase3_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase3_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase3_tag_256);
 $display("Checking test case 3 done with %d ERROR Ciphertext", error_cnt);
 $display("");
@@ -485,26 +480,26 @@ $display("Checking test case 4 AES-GCM Enc with 256b Key, only AAD without Plain
 error_cnt = 0;
 cipher_cnt = 0;
 //KEY
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase1_256_aad_1, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
 //AAD
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_1, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_2, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_3, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_4, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_5, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_aad_6, 1'b1 /*aad val*/, 1'b1 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
 //BLOCK
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b1 /*block_last*/, 128'd0, testcase4_tag_256);
 //LEN
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase4_256_iv, 1'b1 /*iv val*/, testcase4_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase4_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase4_256_block_empty, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase4_tag_256);
 $display("Checking test case 4 done with %d ERROR Ciphertext", error_cnt);
 $display("");
@@ -520,27 +515,27 @@ cipher_cnt = 0;
 //KEY
 AUTHENTIC_TAG = 128'h5CA597CDBB3EDB8D1A1151EA0AF7B436;
 AUTHENTIC_TAG_VAL = 1;
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_aad_1, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase5_tag_256);
 AUTHENTIC_TAG = 0;
 AUTHENTIC_TAG_VAL = 0;
 //AAD
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_aad_1, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase5_tag_256);
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_aad_2, 1'b1 /*aad val*/, 1'b1 /*aad last*/, testcase5_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase5_tag_256);
 //BLOCK
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_1, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase5_cipher_256[0], testcase5_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_aad_2, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_2, 1'b1 /*block val*/, 1'b0 /*block_last*/, testcase5_cipher_256[1], testcase5_tag_256);
 
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_3, 1'b1 /*block val*/, 1'b1 /*block_last*/, testcase5_cipher_256[2], testcase5_tag_256);
 
 //LEN
-aes_gcm_block_test(INIT_AES_GCM_CORE, AES_GCM, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
+aes_gcm_block_test(INIT_AES_GCM_CORE, DEC_MODE, testcase5_256_iv, 1'b1 /*iv val*/, testcase5_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
 testcase5_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase5_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase5_tag_256);
 $display("Checking test case 5 done with %d ERROR Ciphertext", error_cnt);
 $display("");

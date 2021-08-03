@@ -179,7 +179,7 @@ assign oReady = aes_gcm_ready;
 assign oAuthentic = (~iEncdec & oTag_valid & (tag_reg == oTag));
 
 //assign gctr_mode = (iOpMode)? iEncdec : 1'b1; //always do encryption in aes-gcm 
-assign gctr_mode = iEncdec;
+assign gctr_mode = 1'b1;
 // ----------------------------------------------------------------
 // aes_gcm control 
 
