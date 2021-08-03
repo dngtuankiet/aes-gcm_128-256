@@ -1,9 +1,11 @@
+//Operation Mode:
+//0: AES-GCM
+//1: AES only
 module aes_gcm_v3(
 input iClk,
 input iRstn,
 input iInit,
 input iEncdec,
-input iOpMode,
 output oReady,
 
 input [0:95] iIV,
@@ -84,11 +86,10 @@ reg aes_gcm_result_valid;		//Todo change to wire
 // Instantiations.
 //----------------------------------------------------------------
 
-gctr_block GCTR(
+gctr_block_v2 GCTR(
 .iClk(iClk),
 .iRstn(iRstn),
 .iEncdec(gctr_mode),	//always do encryption for aes gcm
-.iOpMode(iOpMode),
 .iInit(gctr_init),
 .iIV(iIV),				
 .iIV_valid(iIV_valid),	
@@ -178,7 +179,7 @@ assign oReady = aes_gcm_ready;
 assign oAuthentic = (~iEncdec & oTag_valid & (tag_reg == oTag));
 
 //assign gctr_mode = (iOpMode)? iEncdec : 1'b1; //always do encryption in aes-gcm 
-assign gctr_mode = ~iOpMode | iEncdec;
+assign gctr_mode = iEncdec;
 // ----------------------------------------------------------------
 // aes_gcm control 
 
@@ -189,19 +190,17 @@ assign gctr_mode = ~iOpMode | iEncdec;
 // - Send plain text to gctr_block and wait for each cipher text
 // ----------------------------------------------------------------
 
-parameter IDLE = 3'b000;				
+parameter IDLE = 3'b000;
 parameter CAL_HASHKEY = 3'b001;
 parameter CAL_ADD = 3'b010;
 parameter CIPHER = 3'b011;
 parameter TAG1 = 3'b100;
 parameter TAG2 = 3'b101;
-parameter AES_ONLY = 3'b110;
 
 always @(*) begin
 	case(aes_gcm_ctrl_reg)
 	IDLE:
-		if(iInit & iKey_valid & ~iOpMode) 		aes_gcm_ctrl_new = CAL_HASHKEY;
-		else if(iInit & iKey_valid & iOpMode)	aes_gcm_ctrl_new = AES_ONLY;
+		if(iInit & iKey_valid) 		aes_gcm_ctrl_new = CAL_HASHKEY;
 		else									aes_gcm_ctrl_new = IDLE;
 	CAL_HASHKEY:
 		if(gctr_result_valid)								aes_gcm_ctrl_new = CAL_ADD;
@@ -217,9 +216,6 @@ always @(*) begin
 		else					aes_gcm_ctrl_new = TAG1;
 	TAG2:	
 		aes_gcm_ctrl_new = IDLE;
-	AES_ONLY:
-		if(gctr_result_valid) 	aes_gcm_ctrl_new = IDLE;
-		else 					aes_gcm_ctrl_new = AES_ONLY;
 	default:
 		aes_gcm_ctrl_new = IDLE;
 	endcase
@@ -395,25 +391,6 @@ always @(*) begin
 			else 					aes_gcm_ready = 1'b0;
 			aes_gcm_tag_valid = 1'b1;
 			aes_gcm_result_valid = 1'b0;
-		end
-		
-		3'b110: begin //AES_ONLY
-			//ghash
-			ghash_result_wen = 1'b0;
-			hash_key_wen = 1'b0;
-			ghash_input_signal[0] = 1'b0;
-			ghash_input_signal[1] = 1'b0;
-			//gctr
-			gctr_init = 1'b1;
-			gctr_hashkey_proc = 1'b0;
-			gctr_y0 = 1'b0;
-			y0_wen = 1'b0;
-			//aes gcm
-			if(gctr_result_valid) 	aes_gcm_ready = 1'b1;
-			else 					aes_gcm_ready = 1'b0;
-			aes_gcm_tag_valid = 1'b0;
-			if(gctr_result_valid) 	aes_gcm_result_valid = 1'b1;
-			else					aes_gcm_result_valid = 1'b0;
 		end
 		
 		default: begin 
