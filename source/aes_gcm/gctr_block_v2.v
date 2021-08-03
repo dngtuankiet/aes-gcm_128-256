@@ -2,10 +2,9 @@
 //0: AES-GCM
 //1: AES only
 
-module gctr_block(
+module gctr_block_v2(
 input iClk,
 input iRstn,  
-input iEncdec,
 input iInit,
 
 input [0:95] iIV,
@@ -75,8 +74,7 @@ assign State3 =  gctr_ctrl_reg[1] &  gctr_ctrl_reg[0];
 aes_core U1(
 .iClk(iClk),						
 .iRstn(iRstn),
-
-.iEncdec(encdec_reg),					
+				
 .iInit(aes_core_init),						
 .iNext(aes_core_next),						
 .oReady(aes_core_oready),				
@@ -107,12 +105,12 @@ always @(posedge iClk) begin
 	else 								block_reg <= block_reg;
 end
 
-always @(posedge iClk) begin
-	if(~iRstn) 							encdec_reg <= 1'd0;
-	//else if(block_wen & iBlock_valid)  	encdec_reg <= iEncdec;
-	else if(key_wen & iKey_valid)		encdec_reg <= iEncdec;
-	else 								encdec_reg <= encdec_reg;
-end
+// always @(posedge iClk) begin
+// 	if(~iRstn) 							encdec_reg <= 1'd0;
+// 	//else if(block_wen & iBlock_valid)  	encdec_reg <= iEncdec;
+// 	else if(key_wen & iKey_valid)		encdec_reg <= iEncdec;
+// 	else 								encdec_reg <= encdec_reg;
+// end
 
 //Sample input key
 always @(posedge iClk) begin

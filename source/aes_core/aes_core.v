@@ -41,7 +41,6 @@ module aes_core(
 	input			iClk,
 	input			iRstn,
 	
-	input			iEncdec,
 	input			iInit,
 	input			iNext,
 	output			oReady,
@@ -123,20 +122,20 @@ module aes_core(
 	.oReady		(enc_ready)
  );
 
- aes_decipher_block dec_block(
-	.iClk		(iClk),
-	.iRstn		(iRstn),
+//  aes_decipher_block dec_block(
+// 	.iClk		(iClk),
+// 	.iRstn		(iRstn),
 	
-	.iNext		(dec_next),
+// 	.iNext		(dec_next),
 	
-	.iKeylen	(iKeylen),
-	.oRound		(dec_round_nr),
-	.iRound_key	(round_key),
+// 	.iKeylen	(iKeylen),
+// 	.oRound		(dec_round_nr),
+// 	.iRound_key	(round_key),
 	
-	.iBlock		(iBlock),
-	.oNew_block	(dec_new_block),
-	.oReady		(dec_ready)
- );
+// 	.iBlock		(iBlock),
+// 	.oNew_block	(dec_new_block),
+// 	.oReady		(dec_ready)
+//  );
 
  aes_key_mem keymem(
 	.iClk		(iClk),
@@ -205,11 +204,17 @@ module aes_core(
  // Controls which of the datapaths that get the iNext signal, have
  // access to the memory as well as the block processing result.
  //----------------------------------------------------------------
- assign enc_next = iEncdec & iNext;
- assign dec_next = ~iEncdec & iNext;
- assign muxed_round_nr = (iEncdec) ? enc_round_nr : dec_round_nr;
- assign muxed_new_block = (iEncdec) ? enc_new_block : dec_new_block;
- assign muxed_ready = (iEncdec) ? enc_ready : dec_ready;
+ //Todo: delete dec
+ assign enc_next = iNext;
+ assign muxed_round_nr = enc_round_nr;
+ assign muxed_new_block = enc_new_block;
+ assign muxed_ready = enc_ready;
+
+//  assign enc_next = iEncdec & iNext;
+//  assign dec_next = ~iEncdec & iNext;
+//  assign muxed_round_nr = (iEncdec) ? enc_round_nr : dec_round_nr;
+//  assign muxed_new_block = (iEncdec) ? enc_new_block : dec_new_block;
+//  assign muxed_ready = (iEncdec) ? enc_ready : dec_ready;
 
  //----------------------------------------------------------------
  // aes_core_ctrl
