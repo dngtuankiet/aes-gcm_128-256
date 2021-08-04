@@ -1,6 +1,9 @@
 module gfmul_v2(
 input iClk,
 input iRstn,
+	//control
+input iNext,
+	//data
 input [0:127] iCtext,
 input iCtext_valid,
 input [0:127] iHashkey,
@@ -13,6 +16,9 @@ output oResult_valid
 //----------------------------------------------------------------
 reg [0:127] Z;
 reg [0:127] V;
+reg next_reg;
+wire next;
+
 wire [0:127] iR;
 assign iR = {8'b1110_0001, 120'd0};
 wire [0:127] V_and_xor;
@@ -40,9 +46,10 @@ endfunction
 // register
 //----------------------------------------------------------------
 always@(posedge iClk) begin
-	if(~iRstn | overflow)					cnt <= 8'd0;
+	if(~iRstn | next)					cnt <= 8'd0;
 	else if(iCtext_valid && iHashkey_valid) cnt <= cnt + 1'b1;
-	else									cnt <= cnt;
+	else if(overflow)					 cnt <= cnt;
+	else cnt <= cnt;
 end
 
 
@@ -56,9 +63,15 @@ always@(posedge iClk) begin
 	else 				Z <= Z;
 end
 
+always@(posedge iClk) begin
+	next_reg <= iNext;
+end
+
+
 //----------------------------------------------------------------
 // assignment
 //----------------------------------------------------------------
+assign next = iNext & ~next_reg;
 assign overflow = cnt[7];
 assign oResult_valid = overflow;
 assign oResult = Z;
