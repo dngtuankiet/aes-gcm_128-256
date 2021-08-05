@@ -47,7 +47,7 @@ endfunction
 //----------------------------------------------------------------
 always@(posedge iClk) begin
 	if(~iRstn | next)					cnt <= 8'd0;
-	else if(iCtext_valid && iHashkey_valid) cnt <= cnt + 1'b1;
+	else if(iCtext_valid & iHashkey_valid & ~overflow) cnt <= cnt + 1'b1;
 	else if(overflow)					 cnt <= cnt;
 	else cnt <= cnt;
 end
