@@ -262,10 +262,10 @@ always @(*) begin
 		if(gctr_result_valid)	aes_gcm_state_new = CAL_ADD;
 		else					aes_gcm_state_new = CAL_HASHKEY;
 	CAL_ADD:
-		if(ghash_result_valid & iBlock_valid & next_rising)		aes_gcm_state_new = CIPHER;
+		if(iBlock_valid & next_rising)		aes_gcm_state_new = CIPHER;
 		else										            aes_gcm_state_new = CAL_ADD;
 	CIPHER:
-		if (gctr_result_valid & iAad_valid & next_rising) aes_gcm_state_new = TAG;
+		if (iAad_valid & next_rising) aes_gcm_state_new = TAG;
 		else 											  aes_gcm_state_new = CIPHER;
 	TAG:
 		if(ghash_result_valid_rising)	aes_gcm_state_new = IDLE;
