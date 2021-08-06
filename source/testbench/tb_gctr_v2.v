@@ -81,7 +81,9 @@ input block_valid
 		BLOCK_VALID = block_valid;
 
 		@(posedge CLK)
+		INIT = 0;
 		@(posedge CLK)
+		
 		//ENCDEC = 0;
 
 		// IV = 0;
