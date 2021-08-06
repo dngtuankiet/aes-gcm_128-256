@@ -89,6 +89,7 @@ integer cipher_cnt;
 initial begin
 CLK = 0;
 RST = 0;
+NEXT = 0;
 // INIT = 0;
 // ENCDEC = 0;
 
@@ -292,7 +293,9 @@ testcase1_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_3, 1
 #50
 //LEN
 aes_gcm_block_test(INIT_AES_GCM_CORE, ENC_MODE, testcase1_256_iv, 1'b1 /*iv val*/, testcase1_256_key, 1'b1 /*key val*/, AES_256_BIT_KEY,
-testcase1_256_len, 1'b0 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
+testcase1_256_len, 1'b1 /*aad val*/, 1'b0 /*aad last*/, testcase1_256_block_1, 1'b0 /*block val*/, 1'b0 /*block_last*/, 128'd0, testcase1_tag_256);
+
+check_tag(testcase1_tag_256);
 
 $display("Checking test case 1 done with %d ERROR Ciphertext", error_cnt);
 $display("");
