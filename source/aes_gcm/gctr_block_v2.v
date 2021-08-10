@@ -22,29 +22,29 @@ output oResult_valid
 // Registers variables and enable.
 //----------------------------------------------------------------
 reg [0:31] counter_reg;
-reg	   counter_en; //todo
+wire	   counter_en; //todo
 
 reg [0:127] block_reg;
-reg 		block_wen; //todo
+wire 		block_wen; //todo
 reg			encdec_reg;
 
 reg [0:95]  IV_reg;
-reg		IV_wen; //todo
+wire		IV_wen; //todo
 
 reg [0:255] key_reg;
-reg 		key_wen; //todo
+wire 		key_wen; //todo
 reg 		key_len;
 
 reg hashkey_reg;
-reg hashkey_wen; //todo
+wire hashkey_wen; //todo
 
 reg y0_reg;
-reg y0_wen; //todo
+wire y0_wen; //todo
 
 reg [1:0] gctr_ctrl_reg;
-reg [1:0] gctr_ctrl_new; //todo
+wire [1:0] gctr_ctrl_new; //todo
 
-reg gctr_result_valid; //todo
+wire gctr_result_valid; //todo
 //----------------------------------------------------------------
 // Wires.
 //----------------------------------------------------------------
@@ -56,8 +56,8 @@ wire State3; //CIPHER
 wire [0:127] muxed_aes_core_input;
 wire [0:127] aes_core_output;
 
-reg aes_core_init;  //todo
-reg aes_core_next; //todo
+wire aes_core_init;  //todo
+wire aes_core_next; //todo
 wire aes_core_oready;
 wire aes_core_output_valid;
 
@@ -137,8 +137,8 @@ end
 //State transition
 always @(posedge iClk) begin
 	if(~iRstn)		gctr_ctrl_reg <= 2'd0;
-	else if(iInit)  gctr_ctrl_reg <= gctr_ctrl_new;
-	else 			gctr_ctrl_reg <= gctr_ctrl_reg;
+	//else if(iInit)  gctr_ctrl_reg <= gctr_ctrl_new;
+	else 			gctr_ctrl_reg <= gctr_ctrl_new;
 end
 
 //----------------------------------------------------------------
@@ -165,103 +165,103 @@ assign oResult_valid = gctr_result_valid;
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //State transition
-always @(*) begin
-	case(gctr_ctrl_reg)
-	2'b00:
-		if(iInit & aes_core_oready) 	gctr_ctrl_new = 2'b01;	//start when init_signal = 1 and the aes_core is avaiable
-		else							gctr_ctrl_new = 2'b00;
-	2'b01:
-		gctr_ctrl_new = 2'b10;									//after init, wait for the aes_core to generate keys
-	2'b10:
-		if(aes_core_oready) gctr_ctrl_new = 2'b11;					//the keys are generated, send data to enc/dec
-		else gctr_ctrl_new = 2'b10;
-	2'b11:
-		if(aes_core_oready) 	gctr_ctrl_new = 2'b00;		//pass input to aes_core, go back to IDLE
-		else					gctr_ctrl_new = 2'b11;
-	endcase
-end
+// always @(*) begin
+// 	case(gctr_ctrl_reg)
+// 	2'b00:
+// 		if(iInit & aes_core_oready) 	gctr_ctrl_new = 2'b01;	//start when init_signal = 1 and the aes_core is avaiable
+// 		else							gctr_ctrl_new = 2'b00;
+// 	2'b01:
+// 		gctr_ctrl_new = 2'b10;									//after init, wait for the aes_core to generate keys
+// 	2'b10:
+// 		if(aes_core_oready) gctr_ctrl_new = 2'b11;					//the keys are generated, send data to enc/dec
+// 		else gctr_ctrl_new = 2'b10;
+// 	2'b11:
+// 		if(aes_core_oready) 	gctr_ctrl_new = 2'b00;		//pass input to aes_core, go back to IDLE
+// 		else					gctr_ctrl_new = 2'b11;
+// 	endcase
+// end
 
 //-- Optim --
-// assign gctr_ctrl_new[0] = (State0 & iInit & aes_core_oready) | (State2 & aes_core_oready) | (State3 & ~aes_core_oready);
-// assign gctr_ctrl_new[1] = State1 | State2 | (State3 & ~aes_core_oready);
+assign gctr_ctrl_new[0] = (State0 & iInit & aes_core_oready) | (State2 & aes_core_oready) | (State3 & ~aes_core_oready);
+assign gctr_ctrl_new[1] = State1 | State2 | (State3 & ~aes_core_oready);
 //---------------------------------------------------------------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------------------------------------------------------------
 //Control signals
-always @(*) begin
-	//input
-	counter_en = 1'b0;
-	block_wen = 1'b0;
-	IV_wen = 1'b0;
-	key_wen = 1'b0;
-	hashkey_wen = 1'b0;
-	//signal to aes_core
-	aes_core_init = 1'b0;
-	aes_core_next = 1'b0;
-	case(gctr_ctrl_reg)
-		2'b00: begin	//IDLE
-			//input
-			counter_en = 1'b0;
-			block_wen = 1'b0;
-			IV_wen = 1'b0;
-			key_wen = 1'b0;
-			hashkey_wen = 1'b0;
-			//signal to aes_core
-			aes_core_init = 1'b0;
-			aes_core_next = 1'b0;
-			gctr_result_valid = aes_core_output_valid;
-		end
-		2'b01: begin	//INIT_AES			//Start aes_core, sample all necessary input
-			//input
-			counter_en = 1'b0;
-			block_wen = 1'b1;
-			IV_wen = 1'b1;
-			key_wen = 1'b1;
-			hashkey_wen = 1'b1;
-			y0_wen = 1'b1;
-			//signal to aes_core
-			aes_core_init = 1'b1;
-			aes_core_next = 1'b0;
-			gctr_result_valid = 1'b0;
-		end
-		2'b10: begin //WAIT_KEY
-			//input
-			counter_en = 1'b0;
-			block_wen = 1'b0;
-			IV_wen = 1'b0;
-			key_wen = 1'b0;
-			hashkey_wen = 1'b0;
-			//signal to aes_core
-			aes_core_init = 1'b0;
-			aes_core_next = 1'b0;
-			gctr_result_valid = 1'b0;
-		end
-		2'b11: begin //CIPHER
-			//input
-			counter_en = 1'b1;
-			block_wen = 1'b0;
-			IV_wen = 1'b0;
-			key_wen = 1'b0;
-			hashkey_wen = 1'b0;
-			//signal to aes_core
-			aes_core_init = 1'b0;
-			aes_core_next = 1'b1;
-			gctr_result_valid = 1'b0;
-		end
-	endcase
-end
+// always @(*) begin
+// 	//input
+// 	counter_en = 1'b0;
+// 	block_wen = 1'b0;
+// 	IV_wen = 1'b0;
+// 	key_wen = 1'b0;
+// 	hashkey_wen = 1'b0;
+// 	//signal to aes_core
+// 	aes_core_init = 1'b0;
+// 	aes_core_next = 1'b0;
+// 	case(gctr_ctrl_reg)
+// 		2'b00: begin	//IDLE
+// 			//input
+// 			counter_en = 1'b0;
+// 			block_wen = 1'b0;
+// 			IV_wen = 1'b0;
+// 			key_wen = 1'b0;
+// 			hashkey_wen = 1'b0;
+// 			//signal to aes_core
+// 			aes_core_init = 1'b0;
+// 			aes_core_next = 1'b0;
+// 			gctr_result_valid = aes_core_output_valid;
+// 		end
+// 		2'b01: begin	//INIT_AES			//Start aes_core, sample all necessary input
+// 			//input
+// 			counter_en = 1'b0;
+// 			block_wen = 1'b1;
+// 			IV_wen = 1'b1;
+// 			key_wen = 1'b1;
+// 			hashkey_wen = 1'b1;
+// 			y0_wen = 1'b1;
+// 			//signal to aes_core
+// 			aes_core_init = 1'b1;
+// 			aes_core_next = 1'b0;
+// 			gctr_result_valid = 1'b0;
+// 		end
+// 		2'b10: begin //WAIT_KEY
+// 			//input
+// 			counter_en = 1'b0;
+// 			block_wen = 1'b0;
+// 			IV_wen = 1'b0;
+// 			key_wen = 1'b0;
+// 			hashkey_wen = 1'b0;
+// 			//signal to aes_core
+// 			aes_core_init = 1'b0;
+// 			aes_core_next = 1'b0;
+// 			gctr_result_valid = 1'b0;
+// 		end
+// 		2'b11: begin //CIPHER
+// 			//input
+// 			counter_en = 1'b1;
+// 			block_wen = 1'b0;
+// 			IV_wen = 1'b0;
+// 			key_wen = 1'b0;
+// 			hashkey_wen = 1'b0;
+// 			//signal to aes_core
+// 			aes_core_init = 1'b0;
+// 			aes_core_next = 1'b1;
+// 			gctr_result_valid = 1'b0;
+// 		end
+// 	endcase
+// end
 
-// assign counter_en = State3;
-// assign block_wen = State1;
-// assign IV_wen = State1;
-// assign key_wen = State1;
-// assign hashkey_wen = State1;
-// assign aes_core_init = State1;
-// assign aes_core_next = State3;
-// 	//this reduce aes_core_output_valid signal to 1 clock cycle
-// //assign gctr_result_valid = (gctr_ctrl_new[1] & ~gctr_ctrl_new[0])? aes_core_output_valid : 1'b0;
-// assign gctr_result_valid = aes_core_output_valid;
-// assign y0_wen = State1;
+assign counter_en = State3;
+assign block_wen = State1;
+assign IV_wen = State1;
+assign key_wen = State1;
+assign hashkey_wen = State1;
+assign aes_core_init = State1;
+assign aes_core_next = State3;
+	//this reduce aes_core_output_valid signal to 1 clock cycle
+//assign gctr_result_valid = (gctr_ctrl_new[1] & ~gctr_ctrl_new[0])? aes_core_output_valid : 1'b0;
+assign gctr_result_valid = aes_core_output_valid;
+assign y0_wen = State1;
 //---------------------------------------------------------------------------------------------------------------------------------
 
 endmodule
