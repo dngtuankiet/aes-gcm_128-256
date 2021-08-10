@@ -15,12 +15,10 @@ input IKEYLEN,
 //130 pins
 input [0:127] IAAD,
 input IAAD_VALID,
-input IAAD_LAST,
 
 //130 pins
 input [0:127] IBLOCK,
 input IBLOCK_VALID,
-input IBLOCK_LAST,
 
 //129 pins
 input [0:127] ITAG,
@@ -48,11 +46,9 @@ aes_gcm_v4 U1(
 
 .iAad(IAAD), //Len
 .iAad_valid(IAAD_VALID),
-.iAad_last(IAAD_LAST),
 
 .iBlock(IBLOCK),
 .iBlock_valid(IBLOCK_VALID),
-.iBlock_last(IBLOCK_LAST),
 
 .iTag(ITAG),
 .iTag_valid(ITAG_VALID),

@@ -1,16 +1,14 @@
-//Operation Mode:
-//1: ENC MODE
-//0: DEC MODE
 module aes_gcm_v4(
 input iClk,
 input iRstn,
-	//control signals
-// input iInit,
-// input iNext,
-// input iEncdec,
+	/* control signals */
+// iCtrl[0] - iInit
+// iCtrl[1] - iNext
+// iCtrl[2] - iEncdec: 1 for ENC, 0 for DEC
+// iCtrl[3] - aad_only
 input [0:3] iCtrl,
 output oReady,
-	//data
+	/* data */
 input [0:95] iIV,
 input iIV_valid,
 input [0:255] iKey,
@@ -19,11 +17,9 @@ input iKeylen,
 
 input [0:127] iAad, //Additional Authentication Data and Length
 input iAad_valid,
-input iAad_last,
 
 input [0:127] iBlock,
 input iBlock_valid,
-input iBlock_last,
 
 input [0:127] iTag,	//DEC_MODE: compare with newly generated TAG
 input iTag_valid,
@@ -41,21 +37,18 @@ output oAuthentic
 /* AES GCM */
 //control
 /*
-ctrl_reg[0]: iInit
-ctrl_reg[1]: iNext
-ctrl_reg[2]: iEncdec
+ctrl_reg[0] - iInit
+ctrl_reg[1] - iNext
+ctrl_reg[2] - iEncdec
+ctrl_reg[3] - aad_only
 */
 reg [0:3] ctrl_reg;
 reg next_reg;
 wire next_rising;
 
-reg aes_gcm_ready; //Todo: FSM
-reg aes_gcm_ready_reg;
-
-reg aes_gcm_tag_valid; //Todo: FSM
-
-reg aes_gcm_result_valid; //Todo: FSM
-reg aes_gcm_result_valid_reg;
+reg aes_gcm_ready;
+reg aes_gcm_tag_valid;
+reg aes_gcm_result_valid;
 //input
 reg [0:127] dec_tag_reg;
 
@@ -67,13 +60,13 @@ parameter CIPHER = 3'b011;
 parameter TAG = 3'b100; //Compute Y0
 parameter TAG2 = 3'b101; //Generate TAG
 reg  [2:0] aes_gcm_state_reg;
-reg  [2:0] aes_gcm_state_new; //Todo change to wire
+reg  [2:0] aes_gcm_state_new; //Todo: Optimize
 
 /* GCTR */
 //control
-reg gctr_init; //Todo: FSM
-reg gctr_hashkey_compute; //Todo: FSM
-reg gctr_y0_compute; //Todo: FSM
+reg gctr_init; //Todo: Optimize
+reg gctr_hashkey_compute; //Todo: Optimize
+reg gctr_y0_compute; //Todo: Optimize
 //output
 wire [0:127] gctr_result;
 wire gctr_result_valid;
@@ -82,23 +75,23 @@ wire gctr_result_rising;
 
 /* GHASH */
 //control
-reg ghash_next;     //Todo: FSM
-reg [1:0] ghash_input_signal; //Todo: FSM
+reg ghash_next;     //Todo: Optimize
+reg [1:0] ghash_input_signal; //Todo: Optimize
 //input
 wire [0:127] mux_ghash_input1;
 wire [0:127] mux_ghash_input2;
-reg ghash_input_valid; //Todo: FSM
+reg ghash_input_valid; //Todo: Optimize
 
 reg [0:127] ghash_key_reg;
-reg ghash_key_wen; //Todo: FSM
-reg ghash_key_valid; //Todo: FSM
+reg ghash_key_wen; //Todo: Optimize
+reg ghash_key_valid; //Todo: Optimize
 
 reg [0:127] y0_reg;
-reg y0_wen; //Todo: FSM
+reg y0_wen; //Todo: Optimize
 //output
 wire [0:127] ghash_result;
 reg [0:127] ghash_result_reg;
-reg ghash_result_wen; //Todo: FSM
+reg ghash_result_wen; //Todo: Optimize
 wire ghash_result_valid;
 reg ghash_result_valid_reg;
 wire ghash_result_valid_rising;
@@ -135,25 +128,25 @@ ghash_block_v2 GHASH(
 	//control
 .iNext(ghash_next),
 	//data
-.iCtext(mux_ghash_input2), 			//AAD or Cipher text
-.iCtext_valid(ghash_input_valid),						//Todo:
+.iCtext(mux_ghash_input2), 			    //AAD or Cipher text
+.iCtext_valid(ghash_input_valid),
 .iY(ghash_result_reg), 					//previous ghash result
 .iHashkey(ghash_key_reg),				//hash key
-.iHashkey_valid(ghash_key_valid),						//Todo
+.iHashkey_valid(ghash_key_valid),
 	//output
 .oY(ghash_result),						//new ghash result
-.oY_valid(ghash_result_valid)								//Todo
+.oY_valid(ghash_result_valid)
 );
 
 //----------------------------------------------------------------
 // Registers
 //----------------------------------------------------------------
 
-/* AES GCM*/
+/* AES GCM */
 //control
 always @(posedge iClk) begin
-	if(~iRstn)			ctrl_reg <= 4'd0;
-	else				ctrl_reg <= iCtrl;
+	if(~iRstn)	ctrl_reg <= 4'd0;
+	else		ctrl_reg <= iCtrl;
 end
 
 always @(posedge iClk) begin
@@ -163,29 +156,22 @@ end
 
 //output
 always @(posedge iClk) begin
-	if(~iRstn)			aes_gcm_ready_reg <= 1'b0;
-	else				aes_gcm_ready_reg <= aes_gcm_ready;
+	if(~iRstn | next_rising)                                      aes_gcm_result_valid <= 1'b0;
+	else if(gctr_result_rising & (aes_gcm_state_reg == CIPHER) )  aes_gcm_result_valid <= 1'b1;
+    else                                                          aes_gcm_result_valid <= aes_gcm_result_valid;
 end
 
 always @(posedge iClk) begin
-	if(~iRstn | next_rising)    aes_gcm_result_valid <= 1'b0;
-	else if(gctr_result_rising & (aes_gcm_state_reg == CIPHER) )	aes_gcm_result_valid <= 1'b1;
-    else                        aes_gcm_result_valid <= aes_gcm_result_valid;
+    if(~iRstn)                                                       aes_gcm_tag_valid <= 1'b0;
+    else if(ghash_result_valid_rising & (aes_gcm_state_reg == TAG))  aes_gcm_tag_valid <= 1'b1;
+    else                                                             aes_gcm_tag_valid <= aes_gcm_tag_valid;
 end
 
 always @(posedge iClk) begin
-    if(~iRstn)    aes_gcm_tag_valid <= 1'b0;
-    else if(ghash_result_valid_rising & (aes_gcm_state_reg == TAG)) aes_gcm_tag_valid <= 1'b1;
-    else aes_gcm_tag_valid <= aes_gcm_tag_valid;
+    if(~iRstn | next_rising)                                                                        aes_gcm_ready <= 1'b0;
+    else if((gctr_result_rising & (aes_gcm_state_reg == CAL_HASHKEY)) | ghash_result_valid_rising)  aes_gcm_ready <= 1'b1;
+    else                                                                                            aes_gcm_ready <= aes_gcm_ready;
 end
-
-always @(posedge iClk) begin
-    if(~iRstn | next_rising) aes_gcm_ready <= 1'b0;
-    else if((gctr_result_rising & (aes_gcm_state_reg == CAL_HASHKEY)) | ghash_result_valid_rising) aes_gcm_ready <= 1'b1;
-    else aes_gcm_ready <= aes_gcm_ready;
-end
-
-//wire condition = (aes_gcm_state_reg == CAL_ADD) |  (aes_gcm_state_reg == CIPHER) |  (aes_gcm_state_reg == CIPHER_TAG)
 
 /* GHASH */
 //ghash key reg
@@ -196,25 +182,25 @@ always @(posedge iClk) begin
 end
 //ghash result reg
 always @(posedge iClk) begin
-	if(~iRstn)			           ghash_result_reg <= 128'd0;
-    else if(ghash_result_wen)    ghash_result_reg <= ghash_result;
-	else				           ghash_result_reg <= ghash_result_reg;
+	if(~iRstn)			        ghash_result_reg <= 128'd0;
+    else if(ghash_result_wen)   ghash_result_reg <= ghash_result;
+	else				        ghash_result_reg <= ghash_result_reg;
 end
 //ghash result valid reg
 always @(posedge iClk) begin
-	if(~iRstn)			           ghash_result_valid_reg <= 1'b0;
-	else				           ghash_result_valid_reg <= ghash_result_valid;
+	if(~iRstn)   ghash_result_valid_reg <= 1'b0;
+	else		 ghash_result_valid_reg <= ghash_result_valid;
 end
 //gctr result valid reg
 always @(posedge iClk) begin
-	if(~iRstn)			           gctr_result_valid_reg <= 1'b0;
-	else				           gctr_result_valid_reg <= gctr_result_valid;
+	if(~iRstn)	 gctr_result_valid_reg <= 1'b0;
+	else		 gctr_result_valid_reg <= gctr_result_valid;
 end
 //ghash key reg
 always @(posedge iClk) begin
-	if(~iRstn)		y0_reg <= 128'd0;
-    else if(y0_wen) y0_reg <= gctr_result;
-	else			y0_reg <= y0_reg;
+	if(~iRstn)		 y0_reg <= 128'd0;
+    else if(y0_wen)  y0_reg <= gctr_result;
+	else			 y0_reg <= y0_reg;
 end
 //decryption tag
 always @(posedge iClk) begin
@@ -225,14 +211,9 @@ end
 /* FSM */
 //State transition
 always @(posedge iClk) begin
-	if(~iRstn)		aes_gcm_state_reg <= 3'd0;
-	else if(ctrl_reg[0]) 	aes_gcm_state_reg <= aes_gcm_state_new;
-	else			aes_gcm_state_reg <= aes_gcm_state_reg;
-end
-reg last_block;
-always @(posedge iClk) begin
-	if(~iRstn)		last_block <= 1'b0;
-	else			last_block <= iBlock_last;
+	if(~iRstn)		      aes_gcm_state_reg <= 3'd0;
+	else if(ctrl_reg[0])  aes_gcm_state_reg <= aes_gcm_state_new;
+	else			      aes_gcm_state_reg <= aes_gcm_state_reg;
 end
 //----------------------------------------------------------------
 // Wire
@@ -256,33 +237,27 @@ assign oAuthentic = (~ctrl_reg[2] & oTag_valid & (dec_tag_reg == oTag));
 always @(*) begin
 	case(aes_gcm_state_reg)
 	IDLE:
-		if(ctrl_reg[0] & next_rising) aes_gcm_state_new = CAL_HASHKEY;
-		else		    aes_gcm_state_new = IDLE;
+		if(ctrl_reg[0] & next_rising)   aes_gcm_state_new = CAL_HASHKEY;
+		else		                    aes_gcm_state_new = IDLE;
 	CAL_HASHKEY:
 		if(gctr_result_valid)	aes_gcm_state_new = CAL_ADD;
 		else					aes_gcm_state_new = CAL_HASHKEY;
 	CAL_ADD:
 		if(iBlock_valid & next_rising)		aes_gcm_state_new = CIPHER;
-        else if(ctrl_reg[3] & next_rising)                aes_gcm_state_new = TAG;
+        else if(ctrl_reg[3] & next_rising)  aes_gcm_state_new = TAG;
 		else							    aes_gcm_state_new = CAL_ADD;
 	CIPHER:
-		if (iAad_valid & next_rising) aes_gcm_state_new = TAG;
-		else 											  aes_gcm_state_new = CIPHER;
+		if (iAad_valid & next_rising)   aes_gcm_state_new = TAG;
+		else 							aes_gcm_state_new = CIPHER;
 	TAG:
 		if(ghash_result_valid_rising)	aes_gcm_state_new = IDLE;
 		else					        aes_gcm_state_new = TAG;
-	// TAG2:	
-	// 	aes_gcm_state_new = IDLE;
 	default:
 		aes_gcm_state_new = IDLE;
 	endcase
 end
 
 always @(*) begin
-    //aes_gcm
-    //es_gcm_ready = 1'b0;
-    //aes_gcm_tag_valid = 1'b0;
-    //aes_gcm_result_valid = 1'b0;
     //gctr
     gctr_init = 1'b0;
     gctr_hashkey_compute = 1'b0;
@@ -297,10 +272,6 @@ always @(*) begin
     ghash_result_wen = 1'b0;
     case(aes_gcm_state_reg)
         IDLE: begin            
-            //aes_gcm
-            //aes_gcm_ready = 1'b0;
-            //aes_gcm_tag_valid = 1'b0;
-            //aes_gcm_result_valid = 1'b0;
             //gctr
             gctr_init = 1'b0;
             gctr_hashkey_compute = 1'b0;
@@ -315,11 +286,6 @@ always @(*) begin
             ghash_result_wen = 1'b0;
         end
         CAL_HASHKEY: begin
-            //aes_gcm
-            // if(gctr_result_valid) aes_gcm_ready = 1'b1;
-            // else                   aes_gcm_ready = 1'b0;
-            //aes_gcm_tag_valid = 1'b0;
-            //aes_gcm_result_valid = 1'b0;
             //gctr
             if(gctr_result_valid) gctr_init = 1'b0;
 			else				  gctr_init = 1'b1;
@@ -338,14 +304,9 @@ always @(*) begin
             ghash_result_wen = 1'b0;
         end
         CAL_ADD: begin
-            //aes_gcm
-            // if(ghash_result_valid) aes_gcm_ready = 1'b1;
-            // else                   aes_gcm_ready = 1'b0;
-            //aes_gcm_tag_valid = 1'b0;
-            //aes_gcm_result_valid = 1'b0;
             //gctr
-            if(next_rising & (iBlock_valid | ctrl_reg[3]))   gctr_init = 1'b1;
-            else                             gctr_init = 1'b0;
+            if(next_rising & (iBlock_valid | ctrl_reg[3]))  gctr_init = 1'b1;
+            else                                            gctr_init = 1'b0;
             gctr_hashkey_compute = 1'b0;
             gctr_y0_compute = 1'b0;
             //ghash
@@ -360,12 +321,6 @@ always @(*) begin
 			else                          ghash_result_wen = 1'b0;
         end
         CIPHER: begin
-            //aes_gcm
-            // if(ghash_result_valid) 	aes_gcm_ready = 1'b1;
-			// else 					aes_gcm_ready = 1'b0;
-            //aes_gcm_tag_valid = 1'b0;
-            //aes_gcm_result_valid = gctr_result_valid;
-
             //gctr
             if(next_rising)   gctr_init = 1'b1;
             else              gctr_init = 1'b0;
@@ -384,11 +339,6 @@ always @(*) begin
 			else					        ghash_result_wen = 1'b0;
         end
         TAG: begin
-             //aes_gcm
-            // if(ghash_result_valid) 	aes_gcm_ready = 1'b1;
-			// else 					aes_gcm_ready = 1'b0;
-            //aes_gcm_tag_valid = 1'b0;
-            //aes_gcm_result_valid = 1'b0;
             //gctr
             gctr_init = 1'b0;
             gctr_hashkey_compute = 1'b0;
@@ -406,10 +356,6 @@ always @(*) begin
 			else                            ghash_result_wen = 1'b0;
         end
         default: begin
-        //aes_gcm
-        //aes_gcm_ready = 1'b0;
-        //aes_gcm_tag_valid = 1'b0;
-        //aes_gcm_result_valid = 1'b0;
         //gctr
         gctr_init = 1'b0;
         gctr_hashkey_compute = 1'b0;
