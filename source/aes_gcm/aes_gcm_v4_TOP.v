@@ -1,5 +1,5 @@
 module aes_gcm_v4_TOP(
-//6 pins
+//7 pins
 input ICLK,
 input IRSTN,
 input [0:3] ICTRL,
@@ -12,11 +12,11 @@ input [0:255] IKEY,
 input IKEY_VALID,
 input IKEYLEN,
 
-//130 pins
+//129 pins
 input [0:127] IAAD,
 input IAAD_VALID,
 
-//130 pins
+//129 pins
 input [0:127] IBLOCK,
 input IBLOCK_VALID,
 
