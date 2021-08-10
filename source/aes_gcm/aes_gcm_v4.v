@@ -246,7 +246,7 @@ assign next_rising = ctrl_reg[1] & ~next_reg;
 
 assign oResult = gctr_result;
 assign oResult_valid = aes_gcm_result_valid;
-assign oTag = ghash_result ^ y0_reg;					
+assign oTag = ghash_result_reg ^ y0_reg;					
 assign oTag_valid = aes_gcm_tag_valid;		
 assign oReady = aes_gcm_ready;
 assign oAuthentic = (~ctrl_reg[2] & oTag_valid & (dec_tag_reg == oTag));
@@ -263,7 +263,8 @@ always @(*) begin
 		else					aes_gcm_state_new = CAL_HASHKEY;
 	CAL_ADD:
 		if(iBlock_valid & next_rising)		aes_gcm_state_new = CIPHER;
-		else										            aes_gcm_state_new = CAL_ADD;
+        else if(ctrl_reg[3] & next_rising)                aes_gcm_state_new = TAG;
+		else							    aes_gcm_state_new = CAL_ADD;
 	CIPHER:
 		if (iAad_valid & next_rising) aes_gcm_state_new = TAG;
 		else 											  aes_gcm_state_new = CIPHER;
@@ -343,7 +344,7 @@ always @(*) begin
             //aes_gcm_tag_valid = 1'b0;
             //aes_gcm_result_valid = 1'b0;
             //gctr
-            if(next_rising & iBlock_valid)   gctr_init = 1'b1;
+            if(next_rising & (iBlock_valid | ctrl_reg[3]))   gctr_init = 1'b1;
             else                             gctr_init = 1'b0;
             gctr_hashkey_compute = 1'b0;
             gctr_y0_compute = 1'b0;
@@ -395,8 +396,7 @@ always @(*) begin
             //ghash
             ghash_next = gctr_result_rising;
             ghash_input_signal[0] = 1'b1;
-            if(ctrl_reg[2]) ghash_input_signal[1] = 1'b0;
-			else		    ghash_input_signal[1] = 1'b1;
+            ghash_input_signal[1] = 1'b0;
             ghash_input_valid = gctr_result_valid;
             ghash_key_wen = 1'b0;
             ghash_key_valid = 1'b1;
