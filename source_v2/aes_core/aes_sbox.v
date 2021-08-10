@@ -1,11 +1,13 @@
 //======================================================================
 //
-// aes_inv_sbox.v
-// --------------
-// The inverse AES S-box. Basically a 256 Byte ROM.
+// aes_sbox.v
+// ----------
+// The AES S-box. Basically a 256 Byte ROM. This implementation
+// contains four parallel S-boxes to handle a 32 bit word.
 //
 //
-// Copyright (c) 2013 Secworks Sweden AB
+// Author: Joachim Strombergson
+// Copyright (c) 2014, Secworks Sweden AB
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or
@@ -35,27 +37,27 @@
 //
 //======================================================================
 
-module aes_inv_sbox(
+module aes_sbox(
 	input	[31:0]	in,
 	output	[31:0]	out
 );
 
- aes_sub_inv_sbox sub_box_3 (
+ aes_sub_sbox sub_box_3 (
 	.in		(in[31:24]),
 	.out	(out[31:24])
  );
  
- aes_sub_inv_sbox sub_box_2 (
+ aes_sub_sbox sub_box_2 (
 	.in		(in[23:16]),
 	.out	(out[23:16])
  );
  
- aes_sub_inv_sbox sub_box_1 (
+ aes_sub_sbox sub_box_1 (
 	.in		(in[15:8]),
 	.out	(out[15:8])
  );
  
- aes_sub_inv_sbox sub_box_0 (
+ aes_sub_sbox sub_box_0 (
 	.in		(in[7:0]),
 	.out	(out[7:0])
  );
