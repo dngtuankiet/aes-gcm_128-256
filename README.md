@@ -1,6 +1,6 @@
 # AES-GCM
-## This AES-GCM can run with 128/256bit key length
-###### Folder description:
+## Project description:
+This AES-GCM can run with 128/256bit key length
 - source:
   * Working source code
   * Using source from this folder in working project
